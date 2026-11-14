@@ -16,12 +16,12 @@ public class GameManager : MonoBehaviour
          Instance = this;
     }
     //completed the stage
-    public event Action OnGoalReached;
+    public event Action onGoalReached;
     public void GoalReached()
     {
-        if (OnGoalReached != null)
+        if (onGoalReached != null)
         {
-            OnGoalReached();
+            onGoalReached();
         }
     }
     //another turn
