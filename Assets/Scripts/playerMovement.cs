@@ -1,4 +1,5 @@
 
+using System.Runtime.InteropServices;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -21,6 +22,7 @@ public class playerMovement : MonoBehaviour
     private Collider2D coll;
     private Recorder recorder;
     public bool deathThisFrame = false;
+    public DemoControl dc;
     
     // Start is called before the first frame update
     void Awake()
@@ -147,5 +149,6 @@ public class playerMovement : MonoBehaviour
     transform.position = defaultSpawnPos;
     GameManager.Instance.ChangeCameraTarget(this.gameObject);
     timer.ResetTimer();
+    dc.RandomizeCharacter();
     }
 }

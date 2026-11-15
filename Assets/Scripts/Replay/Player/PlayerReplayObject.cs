@@ -1,3 +1,4 @@
+using System.Threading;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -5,10 +6,16 @@ using UnityEngine;
 public class PlayerReplayObject : ReplayObject
 {
     private Animator anim;
+    private Collider2D coll;
+
     private bool isDead = false;
+    private float oglife = 10f;
+    private float elapsedTime = 0f;
+    private Timer timer;
     private void Awake()
     {
         anim = GetComponentInChildren<Animator>();
+        coll = GetComponent<Collider2D>();
     }
     private void Start()
     {
@@ -18,7 +25,32 @@ public class PlayerReplayObject : ReplayObject
     {
         GameManager.Instance.onGoalReached -= OnTurnEnded;
     }
-    private void OnTurnEnded()
+    public void SetupLifespan(float lifespan, Timer objTimer)
+    {
+        this.oglife = lifespan;
+        this.timer = objTimer;
+        this.elapsedTime = 0f;
+        this.isDead = false;
+        if (coll!=null)
+        {
+            coll.enabled = true;
+        }
+        
+        
+    }
+    private void Update()
+    {
+        if (isDead || timer == null || !timer.isStarted)
+        {
+            return;
+        }
+        elapsedTime += Time.deltaTime;
+        if (elapsedTime >= oglife)
+        {
+            DieEarly();
+        }
+    }
+    private void DieEarly()
     {
         if (isDead)
         {
@@ -27,6 +59,16 @@ public class PlayerReplayObject : ReplayObject
         isDead = true;
         anim.SetFloat("Speed", 0f);
         anim.SetTrigger("Dead");
+
+        if (coll!=null)
+        {
+            coll.enabled = false;
+        }
+        
+    }
+    private void OnTurnEnded()
+    {
+        DieEarly();
     }
     public override void SetDataForFrame(ReplayData data)
     {
@@ -39,7 +81,7 @@ public class PlayerReplayObject : ReplayObject
         anim.SetFloat("Speed", playerData.movement.magnitude);
         if (playerData.deathThisFrame)
         {
-            OnTurnEnded();
+            DieEarly();
 
         }
         Vector3 scaler = this.transform.localScale;

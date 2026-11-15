@@ -47,13 +47,16 @@ public void ResetTimer()
         }
         else
         {
+            remainingTime = 0;
             isStarted = false;
-            GameManager.Instance.GoalReached();
+
+            
             pm.anim.SetTrigger("Dead");
             pm.deathThisFrame = true;
             pm.IsDead = true;
-            remainingTime = 0;
             StartCoroutine(CountdownRoutine());
+            GameManager.Instance.GoalReached();
+            
         }
        }
        

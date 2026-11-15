@@ -5,6 +5,12 @@ using UnityEngine;
 
 public class Recorder : MonoBehaviour
 {
+    [Header("Clone Lifetime")]
+    public int maxClones = 10;
+    public float baseTime = 10f; // the main one
+    public float TimeDifference = 0.25f; // 0.5 would look too bad maybe
+
+
     [Header("Prefab to instantiate")]
     [SerializeField] private GameObject replayObjectPrefab;
     public Timer timer;
@@ -38,6 +44,11 @@ public class Recorder : MonoBehaviour
             recordings.Add(completedTurn);
             recordingQueue.Clear();
         }
+        if (recordings.Count > maxClones)
+        {
+            recordings[0].DestroyReplayObjectIfExists();
+            recordings.RemoveAt(0);
+        }
         //TODO WHEN THE PLAYER STARTS
         //StartReplay();
     }
@@ -45,11 +56,26 @@ public class Recorder : MonoBehaviour
     {
         recordingQueue.Clear();
         isDoingReplay = true;
-        foreach(Recording pastTurn in recordings)
+        int totalClones = recordings.Count;
+        for(int i = 0; i<totalClones; i++)
         {
+            
+            Recording pastTurn = recordings[i];
             pastTurn.DestroyReplayObjectIfExists();
             pastTurn.RestartFromBeginning();
             pastTurn.InstantiateReplayObject(replayObjectPrefab);
+            int ageRank = totalClones -i;
+            float cloneLifespan = baseTime - (ageRank * TimeDifference);
+            if(pastTurn.replayObject != null)
+            {
+                PlayerReplayObject cloneScript = pastTurn.replayObject.GetComponent<PlayerReplayObject>();
+            
+            
+            if (cloneScript != null)
+            {
+                cloneScript.SetupLifespan(cloneLifespan, timer);
+            }
+        }
         }
         //todo when the player ends run
         //Reset();
