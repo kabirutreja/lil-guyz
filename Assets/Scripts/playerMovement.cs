@@ -8,6 +8,7 @@ public class playerMovement : MonoBehaviour
     //public static playerMovement Instance{get; private set;}
     [Header("forces")]
     public float movespeed;
+    private Vector3 defaultSpawnPos;
     //public float jumpForce = 10f;
 
     private Rigidbody2D rb;
@@ -35,17 +36,37 @@ public class playerMovement : MonoBehaviour
         rb = GetComponent<Rigidbody2D>();
         anim = GetComponentInChildren<Animator>();
     }
+
     void OnDestroy()
     {
+
        // if (Instance == this)
         //{
         //    Instance = null;
         //}
+        GameManager.Instance.onRestartLevel -= Respawn;
+    //GameManager.Instance.onPlayerRespawn -= Respawn;
     }
     void Start()
     {
         //rb = GetComponent<Rigidbody2D>();
        // anim = GetComponent<Animator>();
+       defaultSpawnPos = transform.position;
+       GameManager.Instance.onRestartLevel += Respawn;
+    //GameManager.Instance.onPlayerRespawn += Respawn;
+    }
+    public void ResetPlayer()
+    {
+    transform.position = defaultSpawnPos;
+    rb.position = defaultSpawnPos;
+    rb.velocity = Vector2.zero;
+    moveVelocity = Vector2.zero;
+
+    IsDead = false;
+    deathhandled = false;
+    deathThisFrame = false;
+    coll.enabled = true;
+    anim.Play("Idle",0,0f);
     }
 
     // Update is called once per frame
@@ -54,6 +75,7 @@ public class playerMovement : MonoBehaviour
         if (!IsDead)
         {
             Vector2 moveInput = new Vector2(Input.GetAxisRaw("Horizontal"), Input.GetAxisRaw("Vertical"));
+
         
         
         moveVelocity = moveInput.normalized * movespeed;
@@ -80,28 +102,27 @@ public class playerMovement : MonoBehaviour
         deathhandled = true;
         rb.velocity = Vector3.zero;
              coll.enabled = false;
-             StartCoroutine(WaitRoutine());
+             //StartCoroutine(WaitRoutine());
              moveVelocity = Vector2.zero;
              
     }
     
     }
-     IEnumerator WaitRoutine()
-    {
-        yield return new WaitForSeconds(1f);
-        Respawn();
-    }
-    private void  LateUpdate()
-    {
-        
-    }
+    
+ 
     
     private void FixedUpdate()
     {
-      rb.MovePosition(rb.position + moveVelocity * Time.fixedDeltaTime);
+      
+      if(!IsDead && timer.isStarted)
+        {
+            
+        
       ReplayData data = new PlayerReplayData(this.transform.position,rb.velocity,facingRight,deathThisFrame);
         recorder.RecordReplayFrame(data);
         deathThisFrame = false;
+        }
+        rb.MovePosition(rb.position + moveVelocity * Time.fixedDeltaTime);
     }
     private void Flip()
     {
@@ -112,6 +133,19 @@ public class playerMovement : MonoBehaviour
     }
     private void Respawn()
     {
-        
+    rb.position = defaultSpawnPos;
+    rb.velocity = Vector2.zero;
+    moveVelocity = Vector2.zero;
+    IsDead = false;
+    deathThisFrame = false;
+    anim.ResetTrigger("Dead");
+    anim.Play("Idle",0,0f);
+    anim.Update(0f);
+    deathhandled = false;
+    coll.enabled = true;
+    GameManager.Instance.PlayerRespawn();
+    transform.position = defaultSpawnPos;
+    GameManager.Instance.ChangeCameraTarget(this.gameObject);
+    timer.ResetTimer();
     }
 }

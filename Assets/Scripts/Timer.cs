@@ -1,5 +1,4 @@
-using System.Xml.Schema;
-using System;
+
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -11,13 +10,32 @@ public class Timer : MonoBehaviour
     public float remainingTime;
     public bool isStarted= false;
     public playerMovement pm;
-    // Start is called before the first frame update
+    private float initialTime;
+   
     void Start()
-    {
-        
-    }
+{
+    initialTime = remainingTime;
+    GameManager.Instance.onPlayerRespawn += ResetTimer;
+    GameManager.Instance.onRestartLevel += ResetTimer;
+}
 
-    // Update is called once per frame
+private void OnDestroy()
+{
+    if (GameManager.Instance != null)
+    {
+        GameManager.Instance.onPlayerRespawn -= ResetTimer;
+        GameManager.Instance.onRestartLevel -= ResetTimer;
+    }
+}
+
+public void ResetTimer()
+{
+    StopAllCoroutines();
+    remainingTime = initialTime;
+    isStarted = false;
+}
+
+    
     void Update()
     {
         if (isStarted)
@@ -45,7 +63,7 @@ public class Timer : MonoBehaviour
     }
     IEnumerator CountdownRoutine()
     {
-        yield return new WaitForSeconds(10f);
+        yield return new WaitForSeconds(1.5f);
         GameManager.Instance.RestartLevel();
     }
 }
